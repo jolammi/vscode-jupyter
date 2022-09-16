@@ -161,3 +161,9 @@ export enum PreferredKernelExactMatchReason {
     IsExactMatch = 1 << 2,
     IsNonPythonKernelLanguageMatch = 1 << 3
 }
+
+// Call to prompt the user to select a source for notebook kernels for this document
+export const INotebookKernelSourceSelector = Symbol('INotebookKernelSourceSelector');
+export interface INotebookKernelSourceSelector {
+    selectKernelSource(notebook: vscode.NotebookDocument): Promise<void>;
+}

@@ -3,12 +3,14 @@
 
 'use strict';
 import { inject, injectable } from 'inversify';
+import { window } from 'vscode';
 import { IExtensionSingleActivationService } from '../../../platform/activation/types';
 import { ICommandManager } from '../../../platform/common/application/types';
 import { Commands } from '../../../platform/common/constants';
 import { ContextKey } from '../../../platform/common/contextKey';
 import { IConfigurationService, IDisposableRegistry } from '../../../platform/common/types';
 import { noop } from '../../../platform/common/utils/misc';
+import { INotebookKernelSourceSelector } from '../types';
 
 // Command that we will place into the kernel picker to determine what the controller source is for this document
 @injectable()
@@ -17,7 +19,8 @@ export class PickDocumentKernelSourceCommand implements IExtensionSingleActivati
     constructor(
         @inject(IDisposableRegistry) private readonly disposables: IDisposableRegistry,
         @inject(ICommandManager) private readonly commandManager: ICommandManager,
-        @inject(IConfigurationService) private readonly configService: IConfigurationService
+        @inject(IConfigurationService) private readonly configService: IConfigurationService,
+        @inject(INotebookKernelSourceSelector) private readonly kernelSourceSelector: INotebookKernelSourceSelector
     ) {
         // Context keys to control when these commands are shown
         this.showPickDocumentKernelSourceContext = new ContextKey(
@@ -38,8 +41,11 @@ export class PickDocumentKernelSourceCommand implements IExtensionSingleActivati
         this.updateVisibility();
     }
 
-    private pickDocumentKernelSource() {
-        alert('did it');
+    private async pickDocumentKernelSource() {
+        // IANHU: Can we get context here? Do we know that document triggered this? As far as I know, it might not be the active document
+        if (window.activeNotebookEditor) {
+            await this.kernelSourceSelector.selectKernelSource(window.activeNotebookEditor.notebook);
+        }
     }
 
     // Only show this command if we are in our Insiders picker type

@@ -662,3 +662,10 @@ export interface IKernelSource {
     onDidChangeKernels: Event<void>;
     listKernels(resource: Resource, cancelToken?: CancellationToken): Promise<KernelConnectionMetadata[]>;
 }
+
+// Organizes all of the kernel sources that we know about
+export const IKernelSourceService = Symbol('IStartupCodeProvider');
+export interface IKernelSourceService {
+    getKernelSources(): IKernelSource[];
+    onDidChangeKernelSources: Event<void>;
+}

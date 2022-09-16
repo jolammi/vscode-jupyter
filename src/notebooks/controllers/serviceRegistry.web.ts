@@ -16,10 +16,12 @@ import {
     IControllerPreferredService,
     IControllerRegistration,
     IControllerSelection,
-    IKernelRankingHelper
+    IKernelRankingHelper,
+    INotebookKernelSourceSelector
 } from './types';
 import { registerTypes as registerWidgetTypes } from './ipywidgets/serviceRegistry.web';
 import { KernelRankingHelper } from './kernelRanking/kernelRankingHelper';
+import { NotebookKernelSourceSelector } from './kernelSource/notebookKernelSourceSelector';
 
 export function registerTypes(serviceManager: IServiceManager, isDevMode: boolean) {
     serviceManager.addSingleton<IKernelRankingHelper>(IKernelRankingHelper, KernelRankingHelper);
@@ -30,6 +32,10 @@ export function registerTypes(serviceManager: IServiceManager, isDevMode: boolea
     serviceManager.addSingleton<IControllerPreferredService>(IControllerPreferredService, ControllerPreferredService);
     serviceManager.addBinding(IControllerPreferredService, IExtensionSingleActivationService);
     serviceManager.addSingleton<IControllerSelection>(IControllerSelection, ControllerSelection);
+    serviceManager.addSingleton<INotebookKernelSourceSelector>(
+        INotebookKernelSourceSelector,
+        NotebookKernelSourceSelector
+    );
 
     registerWidgetTypes(serviceManager, isDevMode);
 }

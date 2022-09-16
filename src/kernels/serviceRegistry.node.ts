@@ -26,6 +26,7 @@ import {
     IKernelDependencyService,
     IKernelFinder,
     IKernelProvider,
+    IKernelSourceService,
     IStartupCodeProvider,
     IThirdPartyKernelProvider
 } from './types';
@@ -45,6 +46,7 @@ import { KernelAutoReconnectMonitor } from './kernelAutoReConnectMonitor';
 import { PythonKernelInterruptDaemon } from './raw/finder/pythonKernelInterruptDaemon.node';
 import { LocalKernelFinder } from './raw/finder/localKernelFinder.node';
 import { DebugStartupCodeProvider } from './debuggerStartupCodeProvider';
+import { KernelSourceService } from './kernelSource/kernelSourceService';
 
 export function registerTypes(serviceManager: IServiceManager, isDevMode: boolean) {
     serviceManager.addSingleton<IExtensionSingleActivationService>(IExtensionSingleActivationService, Activation);
@@ -127,4 +129,7 @@ export function registerTypes(serviceManager: IServiceManager, isDevMode: boolea
     serviceManager.addSingleton<IStartupCodeProvider>(IStartupCodeProvider, KernelStartupCodeProvider);
     serviceManager.addSingleton<IStartupCodeProvider>(IStartupCodeProvider, DebugStartupCodeProvider);
     serviceManager.addSingleton<PythonKernelInterruptDaemon>(PythonKernelInterruptDaemon, PythonKernelInterruptDaemon);
+
+    // Kernel source service
+    serviceManager.addSingleton<IKernelSourceService>(IKernelSourceService, KernelSourceService);
 }

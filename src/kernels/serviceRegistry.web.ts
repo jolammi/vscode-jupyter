@@ -12,7 +12,13 @@ import { IRawNotebookSupportedService } from './raw/types';
 import { KernelCrashMonitor } from './kernelCrashMonitor';
 import { registerTypes as registerJupyterTypes } from './jupyter/serviceRegistry.web';
 import { injectable } from 'inversify';
-import { IKernelFinder, IKernelProvider, IStartupCodeProvider, IThirdPartyKernelProvider } from './types';
+import {
+    IKernelFinder,
+    IKernelProvider,
+    IKernelSourceService,
+    IStartupCodeProvider,
+    IThirdPartyKernelProvider
+} from './types';
 import { KernelProvider, ThirdPartyKernelProvider } from './kernelProvider.web';
 import { KernelFinder } from './kernelFinder';
 import { PreferredRemoteKernelIdProvider } from './jupyter/preferredRemoteKernelIdProvider';
@@ -24,6 +30,7 @@ import { CellOutputDisplayIdTracker } from './execution/cellDisplayIdTracker';
 import { KernelAutoReConnectFailedMonitor } from './kernelAutoReConnectFailedMonitor';
 import { KernelAutoReconnectMonitor } from './kernelAutoReConnectMonitor';
 import { DebugStartupCodeProvider } from './debuggerStartupCodeProvider';
+import { KernelSourceService } from './kernelSource/kernelSourceService';
 
 @injectable()
 class RawNotebookSupportedService implements IRawNotebookSupportedService {
@@ -75,4 +82,7 @@ export function registerTypes(serviceManager: IServiceManager, isDevMode: boolea
 
     serviceManager.addSingleton<CellOutputDisplayIdTracker>(CellOutputDisplayIdTracker, CellOutputDisplayIdTracker);
     serviceManager.addSingleton<IStartupCodeProvider>(IStartupCodeProvider, DebugStartupCodeProvider);
+
+    // Kernel source service
+    serviceManager.addSingleton<IKernelSourceService>(IKernelSourceService, KernelSourceService);
 }
