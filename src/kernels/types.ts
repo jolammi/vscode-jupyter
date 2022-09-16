@@ -646,3 +646,19 @@ export interface IStartupCodeProvider {
     priority: StartupCodePriority;
     getCode(kernel: IBaseKernel): Promise<string[]>;
 }
+
+export type KernelSourceType = 'local' | 'remote' | 'external';
+
+// This represents anything that can supply kernels that we have knowledge of
+export interface IKernelSource {
+    // Unique ID for the kernel source
+    id: string;
+    // Display name to show in the UI
+    displayName: string;
+    // The type of kernel source
+    type: KernelSourceType;
+
+    // Interface to get kernels and kernel changes
+    onDidChangeKernels: Event<void>;
+    listKernels(resource: Resource, cancelToken?: CancellationToken): Promise<KernelConnectionMetadata[]>;
+}
