@@ -48,6 +48,7 @@ import { Identifiers } from '../platform/common/constants';
 import { DebugLocationTrackerFactory } from './debugger/debugLocationTrackerFactory';
 import { IJupyterVariables } from '../kernels/variables/types';
 import { DebuggerVariables } from './debugger/debuggerVariables';
+import { PickDocumentKernelSourceCommand } from './controllers/commands/pickDocumentKernelSourceCommand';
 
 export function registerTypes(serviceManager: IServiceManager, isDevMode: boolean) {
     registerControllerTypes(serviceManager, isDevMode);
@@ -114,6 +115,11 @@ export function registerTypes(serviceManager: IServiceManager, isDevMode: boolea
     serviceManager.addSingleton<IExtensionSyncActivationService>(
         IExtensionSyncActivationService,
         ErrorRendererCommunicationHandler
+    );
+
+    serviceManager.addSingleton<IExtensionSingleActivationService>(
+        IExtensionSingleActivationService,
+        PickDocumentKernelSourceCommand
     );
 
     serviceManager.addSingleton<ExportFileOpener>(ExportFileOpener, ExportFileOpener);

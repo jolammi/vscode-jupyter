@@ -839,6 +839,10 @@
             {
                 "command": "jupyter.switchToAnotherRemoteKernels",
                 "title": "%DataScience.switchToAnotherRemoteKernelsTitle%"
+            },
+            {
+                "command": "jupyter.pickDocumentKernelSource",
+                "title": "%DataScience.pickDocumentKernelSourceTitle%"
             }
         ],
         "menus": {
@@ -1001,6 +1005,10 @@
                 {
                     "command": "jupyter.switchToAnotherRemoteKernels",
                     "when": "jupyter.showingRemoteKernels"
+                },
+                {
+                    "command": "jupyter.pickDocumentKernelSource",
+                    "when": "jupyter.pickDocumentKernelSourceContext"
                 }
             ],
             "interactive/toolbar": [
@@ -1093,6 +1101,10 @@
                 },
                 {
                     "command": "jupyter.switchToAnotherRemoteKernels",
+                    "when": "false"
+                },
+                {
+                    "command": "jupyter.pickDocumentKernelSource",
                     "when": "false"
                 },
                 {

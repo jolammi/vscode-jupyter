@@ -53,6 +53,7 @@ import { IJupyterVariables } from '../kernels/variables/types';
 import { DebuggerVariables } from './debugger/debuggerVariables';
 import { MultiplexingDebugService } from './debugger/multiplexingDebugService';
 import { DebugLocationTrackerFactory } from './debugger/debugLocationTrackerFactory';
+import { PickDocumentKernelSourceCommand } from './controllers/commands/pickDocumentKernelSourceCommand';
 
 export function registerTypes(serviceManager: IServiceManager, isDevMode: boolean) {
     registerControllerTypes(serviceManager, isDevMode);
@@ -102,6 +103,8 @@ export function registerTypes(serviceManager: IServiceManager, isDevMode: boolea
         IExtensionSyncActivationService,
         InterpreterPackageTracker
     );
+
+    // Kernel picker commands
     serviceManager.addSingleton<IExtensionSingleActivationService>(
         IExtensionSingleActivationService,
         InstallPythonControllerCommands
@@ -109,6 +112,10 @@ export function registerTypes(serviceManager: IServiceManager, isDevMode: boolea
     serviceManager.addSingleton<IExtensionSingleActivationService>(
         IExtensionSingleActivationService,
         ServerConnectionControllerCommands
+    );
+    serviceManager.addSingleton<IExtensionSingleActivationService>(
+        IExtensionSingleActivationService,
+        PickDocumentKernelSourceCommand
     );
 
     serviceManager.addSingleton<NotebookCellLanguageService>(NotebookCellLanguageService, NotebookCellLanguageService);

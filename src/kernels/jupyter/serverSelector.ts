@@ -143,6 +143,19 @@ export class JupyterServerSelector {
                 this.isWebExtension
             );
             this.implType = 'Stable';
+        } else if (kernelPickerType === 'Insiders' && this.implType !== 'Insiders') {
+            this.impl = new JupyterServerSelector_Original(
+                this.clipboard,
+                this.multiStepFactory,
+                this.extraUriProviders,
+                this.serverUriStorage,
+                this.errorHandler,
+                this.applicationShell,
+                this.configService,
+                this.jupyterConnection,
+                this.isWebExtension
+            );
+            this.implType = 'Stable';
         }
     }
 }
