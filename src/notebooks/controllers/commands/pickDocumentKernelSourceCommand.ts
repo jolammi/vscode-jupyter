@@ -3,7 +3,7 @@
 
 'use strict';
 import { inject, injectable } from 'inversify';
-import { window } from 'vscode';
+import { NotebookDocument, window } from 'vscode';
 import { IExtensionSingleActivationService } from '../../../platform/activation/types';
 import { ICommandManager } from '../../../platform/common/application/types';
 import { Commands } from '../../../platform/common/constants';
@@ -41,7 +41,7 @@ export class PickDocumentKernelSourceCommand implements IExtensionSingleActivati
         this.updateVisibility();
     }
 
-    private async pickDocumentKernelSource() {
+    private async pickDocumentKernelSource(_notebook?: NotebookDocument) {
         // IANHU: Can we get context here? Do we know that document triggered this? As far as I know, it might not be the active document
         if (window.activeNotebookEditor) {
             await this.kernelSourceSelector.selectKernelSource(window.activeNotebookEditor.notebook);

@@ -5,7 +5,7 @@
 
 import * as vscode from 'vscode';
 import { INotebookMetadata } from '@jupyterlab/nbformat';
-import { KernelConnectionMetadata } from '../../kernels/types';
+import { IKernelSource, KernelConnectionMetadata } from '../../kernels/types';
 import { JupyterNotebookView, InteractiveWindowView } from '../../platform/common/constants';
 import { IDisposable, Resource } from '../../platform/common/types';
 import { PythonEnvironment } from '../../platform/pythonEnvironments/info';
@@ -162,8 +162,15 @@ export enum PreferredKernelExactMatchReason {
     IsNonPythonKernelLanguageMatch = 1 << 3
 }
 
-// Call to prompt the user to select a source for notebook kernels for this document
+// Used for the interface to select a kernel source for a notebook document
 export const INotebookKernelSourceSelector = Symbol('INotebookKernelSourceSelector');
 export interface INotebookKernelSourceSelector {
     selectKernelSource(notebook: vscode.NotebookDocument): Promise<void>;
+}
+
+// Track what kernel source is selected for each open notebook document and persist that data
+export const INotebookKernelSourceTracker = Symbol('INotebookKernelSourceTracker');
+export interface INotebookKernelSourceTracker {
+    getKernelSourceForNotebook(notebook: vscode.NotebookDocument): IKernelSource | undefined;
+    setKernelSourceForNotebook(notebook: vscode.NotebookDocument, kernelSource: IKernelSource): void;
 }
