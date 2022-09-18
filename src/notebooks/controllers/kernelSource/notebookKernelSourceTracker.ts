@@ -6,7 +6,6 @@
 import { inject, injectable } from 'inversify';
 import { NotebookDocument, workspace } from 'vscode';
 import { IContributedKernelFinderInfo } from '../../../kernels/internalTypes';
-import { IKernelFinder } from '../../../kernels/types';
 import { IDisposableRegistry } from '../../../platform/common/types';
 import { INotebookKernelSourceTracker } from '../types';
 
@@ -18,10 +17,7 @@ export class NotebookKernelSourceTracker implements INotebookKernelSourceTracker
         IContributedKernelFinderInfo
     >();
 
-    constructor(
-        @inject(IDisposableRegistry) private readonly disposableRegistry: IDisposableRegistry,
-        @inject(IKernelFinder) private readonly kernelFinder: IKernelFinder
-    ) {
+    constructor(@inject(IDisposableRegistry) private readonly disposableRegistry: IDisposableRegistry) {
         workspace.onDidOpenNotebookDocument(this.onDidOpenNotebookDocument, this, this.disposableRegistry);
     }
 
