@@ -74,8 +74,12 @@ export class ControllerRegistration implements IControllerRegistration {
         @inject(IBrowserService) private readonly browser: IBrowserService,
         @inject(IServiceContainer) private readonly serviceContainer: IServiceContainer,
         @inject(IServerConnectionType) private readonly serverConnectionType: IServerConnectionType,
-        @inject(IJupyterServerUriStorage) private readonly serverUriStorage: IJupyterServerUriStorage
+        @inject(IJupyterServerUriStorage) private readonly serverUriStorage: IJupyterServerUriStorage,
+        @inject(IConfigurationService) private readonly configService: IConfigurationService
     ) {
+        if (this.configService.getSettings().kernelPickerType === 'Insiders') {
+            return;
+        }
         this.kernelFilter.onDidChange(this.onDidChangeFilter, this, this.disposables);
         this.serverConnectionType.onDidChange(this.onDidChangeFilter, this, this.disposables);
         this.serverUriStorage.onDidChangeUri(this.onDidChangeUri, this, this.disposables);
@@ -87,6 +91,10 @@ export class ControllerRegistration implements IControllerRegistration {
         metadata: KernelConnectionMetadata,
         types: ('jupyter-notebook' | 'interactive')[]
     ): IVSCodeNotebookController[] {
+        if (this.configService.getSettings().kernelPickerType === 'Insiders') {
+            // For new kernel picker we handle our own registration
+            return [];
+        }
         let results: IVSCodeNotebookController[] = [];
         try {
             // Create notebook selector

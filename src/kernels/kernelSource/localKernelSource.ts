@@ -4,16 +4,22 @@
 'use strict';
 
 import { Event, CancellationToken, EventEmitter } from 'vscode';
-import { Resource } from '../../platform/common/types';
+import { IDisposableRegistry, Resource } from '../../platform/common/types';
+import { ILocalKernelFinder } from '../raw/types';
 import { IKernelSource, KernelConnectionMetadata, KernelSourceType } from '../types';
 
 export class LocalKernelSource implements IKernelSource {
     private _onDidChangeKernels = new EventEmitter<void>();
 
-    constructor() {
+    constructor(
+        private readonly localKernelFinder: ILocalKernelFinder,
+        private readonly disposables: IDisposableRegistry
+    ) {
         this.id = 'LOCALKERNELSOURCE';
         this.displayName = 'Local'; // IANHU: Localize
         this.type = 'local';
+
+        this.disposables.push(localKernelFinder.onDidChangeKernels(() => this._onDidChangeKernels.fire()));
     }
 
     //#region IKernelSource implementation
@@ -24,11 +30,9 @@ export class LocalKernelSource implements IKernelSource {
     public get onDidChangeKernels(): Event<void> {
         return this._onDidChangeKernels.event;
     }
-    listKernels(
-        _resource: Resource,
-        _cancelToken?: CancellationToken | undefined
-    ): Promise<KernelConnectionMetadata[]> {
-        return Promise.resolve([]);
+
+    listKernels(resource: Resource, cancelToken?: CancellationToken | undefined): Promise<KernelConnectionMetadata[]> {
+        return this.localKernelFinder.listKernels(resource, cancelToken);
     }
 
     //#endregion

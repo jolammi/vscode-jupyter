@@ -3,8 +3,10 @@
 
 'use strict';
 
-import { injectable } from 'inversify';
+import { inject, injectable, optional } from 'inversify';
 import { Event, EventEmitter } from 'vscode';
+import { IDisposableRegistry, IsWebExtension } from '../../platform/common/types';
+import { ILocalKernelFinder } from '../raw/types';
 import { IKernelSource, IKernelSourceService } from '../types';
 import { LocalKernelSource } from './localKernelSource';
 import { RemoteKernelSource } from './remoteKernelSource';
@@ -15,8 +17,15 @@ export class KernelSourceService implements IKernelSourceService {
 
     private _onDidChangeKernelSources = new EventEmitter<void>();
 
-    constructor() {
-        this.kernelSources.push(new LocalKernelSource());
+    constructor(
+        @inject(IsWebExtension) private readonly isWebExtension: boolean,
+        @inject(ILocalKernelFinder) @optional() localKernelFinder: ILocalKernelFinder | undefined,
+        @inject(IDisposableRegistry) disposables: IDisposableRegistry
+    ) {
+        // Local Kernel Source is not available on the web extenstion
+        if (!this.isWebExtension && localKernelFinder) {
+            this.kernelSources.push(new LocalKernelSource(localKernelFinder, disposables));
+        }
         this.kernelSources.push(new RemoteKernelSource());
     }
 
