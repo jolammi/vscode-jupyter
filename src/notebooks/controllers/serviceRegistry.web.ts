@@ -3,7 +3,7 @@
 
 'use strict';
 
-import { IExtensionSingleActivationService } from '../../platform/activation/types';
+import { IExtensionSingleActivationService, IExtensionSyncActivationService } from '../../platform/activation/types';
 import { IServiceManager } from '../../platform/ioc/types';
 import { ControllerDefaultService } from './controllerDefaultService';
 import { ControllerLoader } from './controllerLoader';
@@ -42,6 +42,7 @@ export function registerTypes(serviceManager: IServiceManager, isDevMode: boolea
         INotebookKernelSourceTracker,
         NotebookKernelSourceTracker
     );
+    serviceManager.addBinding(INotebookKernelSourceTracker, IExtensionSyncActivationService);
 
     registerWidgetTypes(serviceManager, isDevMode);
 }

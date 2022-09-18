@@ -2117,7 +2117,8 @@
         "portsAttributes",
         "quickPickSortByLabel",
         "notebookKernelSource",
-        "interactiveWindow"
+        "interactiveWindow",
+        "notebookControllerAffinityHidden"
     ],
     "scripts": {
         "package": "gulp clean && gulp prePublishBundle && vsce package -o ms-toolsai-jupyter-insiders.vsix",

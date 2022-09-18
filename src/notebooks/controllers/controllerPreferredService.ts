@@ -166,7 +166,8 @@ export class ControllerPreferredService implements IControllerPreferredService, 
                 if (!targetController) {
                     traceVerbose(`Early registration of controller for Kernel connection ${preferredConnection.id}`);
                     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    this.registration.add(preferredConnection, [JupyterNotebookView]);
+                    // IANHU: Cutting this out for simplicity
+                    // this.registration.add(preferredConnection, [JupyterNotebookView]);
                 }
             } else if (document.notebookType === InteractiveWindowView) {
                 // Wait for our controllers to be loaded before we try to set a preferred on
