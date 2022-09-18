@@ -27,14 +27,18 @@ import { debounceAsync } from '../../../platform/common/utils/decorators';
 import { IPythonExtensionChecker } from '../../../platform/api/types';
 import { IInterpreterService } from '../../../platform/interpreter/contracts';
 import { EnvironmentType } from '../../../platform/pythonEnvironments/info';
+import { IContributedKernelFinderInfo } from '../../internalTypes';
 
 // This class searches for local kernels.
 // First it searches on a global persistent state, then on the installed python interpreters,
 // and finally on the default locations that jupyter installs kernels on.
 @injectable()
-export class LocalKernelFinder implements ILocalKernelFinder, IExtensionSingleActivationService {
+export class LocalKernelFinder
+    implements ILocalKernelFinder, IContributedKernelFinderInfo, IExtensionSingleActivationService
+{
     kind: string = 'local';
     id: string = 'local';
+    displayName: string = 'Local Kernels'; // IANHU: Localize
 
     private _onDidChangeKernels = new EventEmitter<void>();
     onDidChangeKernels: Event<void> = this._onDidChangeKernels.event;

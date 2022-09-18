@@ -39,19 +39,21 @@ import { noop } from '../../../platform/common/utils/misc';
 import { IApplicationEnvironment } from '../../../platform/common/application/types';
 import { KernelFinder } from '../../kernelFinder';
 import { RemoteKernelSpecsCacheKey, removeOldCachedItems } from '../../common/commonFinder';
+import { IContributedKernelFinderInfo } from '../../internalTypes';
 
 // Even after shutting down a kernel, the server API still returns the old information.
 // Re-query after 2 seconds to ensure we don't get stale information.
 const REMOTE_KERNEL_REFRESH_INTERVAL = 2_000;
 
 // This class watches a single jupyter server URI and returns kernels from it
-export class UniversalRemoteKernelFinder implements IRemoteKernelFinder, IDisposable {
+export class UniversalRemoteKernelFinder implements IRemoteKernelFinder, IContributedKernelFinderInfo, IDisposable {
     /**
      * List of ids of kernels that should be hidden from the kernel picker.
      */
     private readonly kernelIdsToHide = new Set<string>();
     kind: string = 'remote';
     id: string;
+    displayName: string;
     private _cacheUpdateCancelTokenSource: CancellationTokenSource | undefined;
     private cache: RemoteKernelConnectionMetadata[] = [];
 
@@ -84,6 +86,9 @@ export class UniversalRemoteKernelFinder implements IRemoteKernelFinder, IDispos
     ) {
         // Register with remote-serverId as our ID
         this.id = `${this.kind}-${serverUri.serverId}`;
+
+        // Create a reasonable display name for this kernel finder
+        this.displayName = `Remote - ${serverUri.displayName || serverUri.uri}`;
 
         this._initializedPromise = new Promise<void>((resolve) => {
             this._initializeResolve = resolve;

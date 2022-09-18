@@ -20,6 +20,7 @@ import { PythonEnvironment } from '../platform/pythonEnvironments/info';
 import { IAsyncDisposable, IDisplayOptions, Resource } from '../platform/common/types';
 import { IBackupFile, IJupyterKernel } from './jupyter/types';
 import { PythonEnvironment_PythonApi } from '../platform/api/types';
+import { IContributedKernelFinderInfo } from './internalTypes';
 
 export type WebSocketData = string | Buffer | ArrayBuffer | Buffer[];
 
@@ -612,6 +613,7 @@ export const IKernelFinder = Symbol('IKernelFinder');
 export interface IKernelFinder {
     onDidChangeKernels: Event<void>;
     listKernels(resource: Resource, cancelToken?: CancellationToken): Promise<KernelConnectionMetadata[]>;
+    getRegisteredKernelFinderInfo(): IContributedKernelFinderInfo[];
 }
 
 export type KernelAction = 'start' | 'interrupt' | 'restart' | 'execution';
