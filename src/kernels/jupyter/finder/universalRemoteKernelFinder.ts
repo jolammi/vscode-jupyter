@@ -3,12 +3,10 @@
 
 'use strict';
 
-import { injectable, inject, named } from 'inversify';
 import { CancellationToken, CancellationTokenSource, Event, EventEmitter, Memento, Uri } from 'vscode';
 import { getKernelId, getLanguageInKernelSpec, serializeKernelConnection } from '../../helpers';
 import {
     IJupyterKernelSpec,
-    IKernelFinder,
     IKernelProvider,
     INotebookProvider,
     INotebookProviderConnection,
@@ -18,23 +16,16 @@ import {
     RemoteKernelConnectionMetadata,
     RemoteKernelSpecConnectionMetadata
 } from '../../types';
-import {
-    GLOBAL_MEMENTO,
-    IDisposableRegistry,
-    IExtensions,
-    IMemento,
-    IsWebExtension,
-    Resource
-} from '../../../platform/common/types';
+import { IDisposableRegistry, IExtensions, Resource } from '../../../platform/common/types';
 import { IInterpreterService } from '../../../platform/interpreter/contracts';
 import { capturePerfTelemetry, Telemetry } from '../../../telemetry';
 import {
     IJupyterSessionManagerFactory,
     IJupyterSessionManager,
     IJupyterServerUriStorage,
-    IServerConnectionType,
     IJupyterRemoteCachedKernelValidator,
-    IRemoteKernelFinder
+    IRemoteKernelFinder,
+    IJupyterServerUriEntry
 } from '../types';
 import { sendKernelSpecTelemetry } from '../../raw/finder/helper';
 import { traceError, traceWarning, traceInfoIfCI } from '../../../platform/logging';
@@ -49,15 +40,13 @@ import { noop } from '../../../platform/common/utils/misc';
 import { IApplicationEnvironment } from '../../../platform/common/application/types';
 import { KernelFinder } from '../../kernelFinder';
 import { RemoteKernelSpecsCacheKey, removeOldCachedItems } from '../../common/commonFinder';
-import { IExtensionSingleActivationService } from '../../../platform/activation/types';
 
 // Even after shutting down a kernel, the server API still returns the old information.
 // Re-query after 2 seconds to ensure we don't get stale information.
 const REMOTE_KERNEL_REFRESH_INTERVAL = 2_000;
 
-// This class finds kernels from the current selected Jupyter URI
-@injectable()
-export class RemoteKernelFinder implements IRemoteKernelFinder, IExtensionSingleActivationService {
+// This class watches a single jupyter server URI and returns kernels from it
+export class UniversalRemoteKernelFinder implements IRemoteKernelFinder {
     /**
      * List of ids of kernels that should be hidden from the kernel picker.
      */
@@ -79,21 +68,20 @@ export class RemoteKernelFinder implements IRemoteKernelFinder, IExtensionSingle
     private wasPythonInstalledWhenFetchingKernels = false;
 
     constructor(
-        @inject(IJupyterSessionManagerFactory) private jupyterSessionManagerFactory: IJupyterSessionManagerFactory,
-        @inject(IInterpreterService) private interpreterService: IInterpreterService,
-        @inject(IPythonExtensionChecker) private extensionChecker: IPythonExtensionChecker,
-        @inject(INotebookProvider) private readonly notebookProvider: INotebookProvider,
-        @inject(IJupyterServerUriStorage) private readonly serverUriStorage: IJupyterServerUriStorage,
-        @inject(IServerConnectionType) private readonly serverConnectionType: IServerConnectionType,
-        @inject(IMemento) @named(GLOBAL_MEMENTO) private readonly globalState: Memento,
-        @inject(IApplicationEnvironment) private readonly env: IApplicationEnvironment,
-        @inject(IJupyterRemoteCachedKernelValidator)
+        private jupyterSessionManagerFactory: IJupyterSessionManagerFactory,
+        private interpreterService: IInterpreterService,
+        private extensionChecker: IPythonExtensionChecker,
+        private readonly notebookProvider: INotebookProvider,
+        private readonly serverUriStorage: IJupyterServerUriStorage,
+        private readonly globalState: Memento,
+        private readonly env: IApplicationEnvironment,
         private readonly cachedRemoteKernelValidator: IJupyterRemoteCachedKernelValidator,
-        @inject(IKernelFinder) kernelFinder: KernelFinder,
-        @inject(IDisposableRegistry) private readonly disposables: IDisposableRegistry,
-        @inject(IKernelProvider) private readonly kernelProvider: IKernelProvider,
-        @inject(IExtensions) private readonly extensions: IExtensions,
-        @inject(IsWebExtension) private isWebExtension: boolean
+        kernelFinder: KernelFinder,
+        private readonly disposables: IDisposableRegistry,
+        private readonly kernelProvider: IKernelProvider,
+        private readonly extensions: IExtensions,
+        private isWebExtension: boolean,
+        private readonly serverUri: IJupyterServerUriEntry
     ) {
         this._initializedPromise = new Promise<void>((resolve) => {
             this._initializeResolve = resolve;
@@ -108,7 +96,7 @@ export class RemoteKernelFinder implements IRemoteKernelFinder, IExtensionSingle
 
         this.disposables.push(
             this.serverUriStorage.onDidChangeUri(() => {
-                this.updateCache().then(noop, noop);
+                // IANHU: Need to dispose here if removed?
             })
         );
 
@@ -153,13 +141,7 @@ export class RemoteKernelFinder implements IRemoteKernelFinder, IExtensionSingle
     }
 
     public async loadCache() {
-        traceInfoIfCI('Remote Kernel Finder load cache', this.serverConnectionType.isLocalLaunch);
-
-        if (this.serverConnectionType.isLocalLaunch) {
-            await this.writeToCache([]);
-            this._initializeResolve();
-            return;
-        }
+        traceInfoIfCI('Remote Kernel Finder load cache');
 
         const kernelsFromCache = await this.getFromCache();
 
@@ -225,16 +207,12 @@ export class RemoteKernelFinder implements IRemoteKernelFinder, IExtensionSingle
         cancelToken?: CancellationToken
     ): Promise<INotebookProviderConnection | undefined> {
         const ui = new DisplayOptions(false);
-        const uri = await this.serverUriStorage.getRemoteUri();
-        if (!uri) {
-            return;
-        }
         return this.notebookProvider.connect({
             resource: undefined,
             ui,
             localJupyter: false,
             token: cancelToken,
-            serverId: this.serverUriStorage.currentServerId!
+            serverId: this.serverUri.serverId
         });
     }
 

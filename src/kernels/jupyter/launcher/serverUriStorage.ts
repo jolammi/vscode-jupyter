@@ -13,7 +13,7 @@ import { getFilePath } from '../../../platform/common/platform/fs-paths';
 import { ICryptoUtils, IMemento, GLOBAL_MEMENTO, IsWebExtension } from '../../../platform/common/types';
 import { traceError, traceInfoIfCI } from '../../../platform/logging';
 import { computeServerId } from '../jupyterUtils';
-import { IJupyterServerUriStorage, IServerConnectionType } from '../types';
+import { IJupyterServerUriEntry, IJupyterServerUriStorage, IServerConnectionType } from '../types';
 
 export const mementoKeyToIndicateIfConnectingToLocalKernelsOnly = 'connectToLocalKernelsOnly';
 export const currentServerHashKey = 'currentServerHash';
@@ -36,6 +36,10 @@ export class JupyterServerUriStorage implements IJupyterServerUriStorage, IServe
     private _onDidRemoveUris = new EventEmitter<string[]>();
     public get onDidRemoveUris() {
         return this._onDidRemoveUris.event;
+    }
+    private _onDidAddUri = new EventEmitter<IJupyterServerUriEntry>();
+    public get onDidAddUri() {
+        return this._onDidAddUri.event;
     }
     public get currentServerId(): string | undefined {
         return this._currentServerId;
@@ -85,7 +89,11 @@ export class JupyterServerUriStorage implements IJupyterServerUriStorage, IServe
         });
 
         // Add this entry into the last.
-        editedList.push({ uri, time, serverId, displayName: displayName || uri });
+        const entry = { uri, time, serverId, displayName: displayName || uri };
+        editedList.push(entry);
+
+        // Signal that we added in the entry
+        this._onDidAddUri.fire(entry);
 
         return this.updateMemento(editedList);
     }
@@ -102,9 +110,7 @@ export class JupyterServerUriStorage implements IJupyterServerUriStorage, IServe
         }
         this._onDidRemoveUris.fire([uri]);
     }
-    private async updateMemento(
-        editedList: { uri: string; serverId: string; time: number; displayName?: string | undefined }[]
-    ) {
+    private async updateMemento(editedList: IJupyterServerUriEntry[]) {
         // Sort based on time. Newest time first
         const sorted = editedList.sort((a, b) => {
             return b.time - a.time;
@@ -138,9 +144,7 @@ export class JupyterServerUriStorage implements IJupyterServerUriStorage, IServe
             blob
         );
     }
-    public async getSavedUriList(): Promise<
-        { uri: string; serverId: string; time: number; displayName?: string | undefined }[]
-    > {
+    public async getSavedUriList(): Promise<IJupyterServerUriEntry[]> {
         if (this.lastSavedList) {
             return this.lastSavedList;
         }

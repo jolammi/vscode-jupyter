@@ -42,6 +42,8 @@ import {
     IJupyterRemoteCachedKernelValidator,
     IServerConnectionType
 } from './types';
+import { IConfigurationService } from '../../platform/common/types';
+import { UniversalRemoteKernelFinderController } from './finder/universalRemoteKernelFinderController';
 
 export function registerTypes(serviceManager: IServiceManager, _isDevMode: boolean) {
     serviceManager.addSingleton<IJupyterNotebookProvider>(IJupyterNotebookProvider, JupyterNotebookProvider);
@@ -87,4 +89,16 @@ export function registerTypes(serviceManager: IServiceManager, _isDevMode: boole
         JupyterRemoteCachedKernelValidator
     );
     serviceManager.addSingleton<IDataScienceErrorHandler>(IDataScienceErrorHandler, DataScienceErrorHandlerWeb);
+    const configuration = serviceManager.get<IConfigurationService>(IConfigurationService);
+    if (configuration.getSettings().kernelPickerType === 'Insiders') {
+        serviceManager.addSingleton<IExtensionSingleActivationService>(
+            IExtensionSingleActivationService,
+            UniversalRemoteKernelFinderController
+        );
+    } else {
+        serviceManager.addSingleton<IExtensionSingleActivationService>(
+            IExtensionSingleActivationService,
+            RemoteKernelFinder
+        );
+    }
 }
