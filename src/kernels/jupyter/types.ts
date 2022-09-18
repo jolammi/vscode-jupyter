@@ -245,7 +245,7 @@ export const IJupyterServerUriStorage = Symbol('IJupyterServerUriStorage');
 export interface IJupyterServerUriStorage {
     readonly currentServerId: string | undefined;
     readonly onDidChangeUri: Event<void>;
-    readonly onDidRemoveUris: Event<string[]>;
+    readonly onDidRemoveUris: Event<IJupyterServerUriEntry[]>;
     readonly onDidAddUri: Event<IJupyterServerUriEntry>;
     addToUriList(uri: string, time: number, displayName: string): Promise<void>;
     getSavedUriList(): Promise<IJupyterServerUriEntry[]>;

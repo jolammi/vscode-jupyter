@@ -16,13 +16,12 @@ import {
     RemoteKernelConnectionMetadata,
     RemoteKernelSpecConnectionMetadata
 } from '../../types';
-import { IDisposableRegistry, IExtensions, Resource } from '../../../platform/common/types';
+import { IDisposable, IDisposableRegistry, IExtensions, Resource } from '../../../platform/common/types';
 import { IInterpreterService } from '../../../platform/interpreter/contracts';
 import { capturePerfTelemetry, Telemetry } from '../../../telemetry';
 import {
     IJupyterSessionManagerFactory,
     IJupyterSessionManager,
-    IJupyterServerUriStorage,
     IJupyterRemoteCachedKernelValidator,
     IRemoteKernelFinder,
     IJupyterServerUriEntry
@@ -46,7 +45,7 @@ import { RemoteKernelSpecsCacheKey, removeOldCachedItems } from '../../common/co
 const REMOTE_KERNEL_REFRESH_INTERVAL = 2_000;
 
 // This class watches a single jupyter server URI and returns kernels from it
-export class UniversalRemoteKernelFinder implements IRemoteKernelFinder {
+export class UniversalRemoteKernelFinder implements IRemoteKernelFinder, IDisposable {
     /**
      * List of ids of kernels that should be hidden from the kernel picker.
      */
@@ -72,7 +71,6 @@ export class UniversalRemoteKernelFinder implements IRemoteKernelFinder {
         private interpreterService: IInterpreterService,
         private extensionChecker: IPythonExtensionChecker,
         private readonly notebookProvider: INotebookProvider,
-        private readonly serverUriStorage: IJupyterServerUriStorage,
         private readonly globalState: Memento,
         private readonly env: IApplicationEnvironment,
         private readonly cachedRemoteKernelValidator: IJupyterRemoteCachedKernelValidator,
@@ -90,15 +88,14 @@ export class UniversalRemoteKernelFinder implements IRemoteKernelFinder {
         kernelFinder.registerKernelFinder(this);
     }
 
+    dispose(): void | undefined {
+        // throw new Error('Method not implemented.');
+        // IANHU: Instead of passing in disposables, do we need our own disposable store here?
+    }
+
     async activate(): Promise<void> {
         // warm up the cache
         this.loadCache().then(noop, noop);
-
-        this.disposables.push(
-            this.serverUriStorage.onDidChangeUri(() => {
-                // IANHU: Need to dispose here if removed?
-            })
-        );
 
         // If we create a new kernel, we need to refresh if the kernel is remote (because
         // we have live sessions possible)

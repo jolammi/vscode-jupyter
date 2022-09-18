@@ -33,7 +33,7 @@ export class JupyterServerUriStorage implements IJupyterServerUriStorage, IServe
     public get onDidChangeUri() {
         return this._onDidChangeUri.event;
     }
-    private _onDidRemoveUris = new EventEmitter<string[]>();
+    private _onDidRemoveUris = new EventEmitter<IJupyterServerUriEntry[]>();
     public get onDidRemoveUris() {
         return this._onDidRemoveUris.event;
     }
@@ -103,12 +103,15 @@ export class JupyterServerUriStorage implements IJupyterServerUriStorage, IServe
         const uriList = await this.getSavedUriList();
 
         // Remove this uri if already found (going to add again with a new time)
-        const editedList = uriList.filter((f) => f.uri !== uri);
-        await this.updateMemento(editedList);
-        if (activeUri === uri) {
-            await this.setUriToLocal();
+        const removedItem = uriList.find((f) => f.uri === uri);
+        if (removedItem) {
+            const editedList = uriList.filter((f) => f.uri !== uri);
+            await this.updateMemento(editedList);
+            if (activeUri === uri) {
+                await this.setUriToLocal();
+            }
+            this._onDidRemoveUris.fire([removedItem]);
         }
-        this._onDidRemoveUris.fire([uri]);
     }
     private async updateMemento(editedList: IJupyterServerUriEntry[]) {
         // Sort based on time. Newest time first
@@ -198,7 +201,7 @@ export class JupyterServerUriStorage implements IJupyterServerUriStorage, IServe
         // Notify out that we've removed the list to clean up controller entries, passwords, ect
         this._onDidRemoveUris.fire(
             uriList.map((uriListItem) => {
-                return uriListItem.uri;
+                return uriListItem;
             })
         );
     }

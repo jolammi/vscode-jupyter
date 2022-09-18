@@ -11,7 +11,7 @@ import { IPythonExtensionChecker } from '../../platform/api/types';
 import { IVSCodeNotebook } from '../../platform/common/application/types';
 import { isCancellationError } from '../../platform/common/cancellation';
 import { InteractiveWindowView, JupyterNotebookView } from '../../platform/common/constants';
-import { IConfigurationService, IDisposableRegistry } from '../../platform/common/types';
+import { IDisposableRegistry } from '../../platform/common/types';
 import { getNotebookMetadata } from '../../platform/common/utils';
 import { noop } from '../../platform/common/utils/misc';
 import { StopWatch } from '../../platform/common/utils/stopWatch';
@@ -36,30 +36,27 @@ export class ControllerLoader implements IControllerLoader, IExtensionSyncActiva
         @inject(IKernelFinder) private readonly kernelFinder: IKernelFinder,
         @inject(IPythonExtensionChecker) private readonly extensionChecker: IPythonExtensionChecker,
         @inject(IInterpreterService) private readonly interpreters: IInterpreterService,
-        @inject(IControllerRegistration) private readonly registration: IControllerRegistration,
-        @inject(IConfigurationService) private readonly configService: IConfigurationService
+        @inject(IControllerRegistration) private readonly registration: IControllerRegistration
     ) {}
 
     public activate(): void {
-        if (this.configService.getSettings().kernelPickerType !== 'Insiders') {
-            // Make sure to reload whenever we do something that changes state
-            this.kernelFinder.onDidChangeKernels(
-                () => {
-                    this.loadControllers(true)
-                        .then(noop)
-                        .catch((ex) => traceError('Error reloading notebook controllers', ex));
-                },
-                this,
-                this.disposables
-            );
+        // Make sure to reload whenever we do something that changes state
+        this.kernelFinder.onDidChangeKernels(
+            () => {
+                this.loadControllers(true)
+                    .then(noop)
+                    .catch((ex) => traceError('Error reloading notebook controllers', ex));
+            },
+            this,
+            this.disposables
+        );
 
-            // Sign up for document either opening or closing
-            this.notebook.onDidOpenNotebookDocument(this.onDidOpenNotebookDocument, this, this.disposables);
-            // If the extension activates after installing Jupyter extension, then ensure we load controllers right now.
-            this.notebook.notebookDocuments.forEach((notebook) => this.onDidOpenNotebookDocument(notebook).catch(noop));
+        // Sign up for document either opening or closing
+        this.notebook.onDidOpenNotebookDocument(this.onDidOpenNotebookDocument, this, this.disposables);
+        // If the extension activates after installing Jupyter extension, then ensure we load controllers right now.
+        this.notebook.notebookDocuments.forEach((notebook) => this.onDidOpenNotebookDocument(notebook).catch(noop));
 
-            this.loadControllers(true).ignoreErrors();
-        }
+        this.loadControllers(true).ignoreErrors();
     }
     public loadControllers(refresh?: boolean | undefined): Promise<void> {
         if (!this.controllersPromise || refresh) {
