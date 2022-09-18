@@ -5,10 +5,11 @@
 
 import * as vscode from 'vscode';
 import { INotebookMetadata } from '@jupyterlab/nbformat';
-import { IKernelSource, KernelConnectionMetadata } from '../../kernels/types';
+import { KernelConnectionMetadata } from '../../kernels/types';
 import { JupyterNotebookView, InteractiveWindowView } from '../../platform/common/constants';
 import { IDisposable, Resource } from '../../platform/common/types';
 import { PythonEnvironment } from '../../platform/pythonEnvironments/info';
+import { IContributedKernelFinderInfo } from '../../kernels/internalTypes';
 
 export const InteractiveControllerIdSuffix = ' (Interactive)';
 
@@ -169,8 +170,9 @@ export interface INotebookKernelSourceSelector {
 }
 
 // Track what kernel source is selected for each open notebook document and persist that data
+// IANHU: rename
 export const INotebookKernelSourceTracker = Symbol('INotebookKernelSourceTracker');
 export interface INotebookKernelSourceTracker {
-    getKernelSourceForNotebook(notebook: vscode.NotebookDocument): IKernelSource | undefined;
-    setKernelSourceForNotebook(notebook: vscode.NotebookDocument, kernelSource: IKernelSource): void;
+    getKernelSourceForNotebook(notebook: vscode.NotebookDocument): IContributedKernelFinderInfo | undefined;
+    setKernelSourceForNotebook(notebook: vscode.NotebookDocument, kernelFinderInfo: IContributedKernelFinderInfo): void;
 }

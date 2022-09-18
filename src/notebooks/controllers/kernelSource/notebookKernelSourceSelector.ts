@@ -5,34 +5,34 @@
 
 import { inject, injectable } from 'inversify';
 import { NotebookDocument, QuickPickItem } from 'vscode';
-import { IKernelSource, IKernelSourceService } from '../../../kernels/types';
+import { IContributedKernelFinderInfo } from '../../../kernels/internalTypes';
+import { IKernelFinder } from '../../../kernels/types';
 import { IApplicationShell } from '../../../platform/common/application/types';
 import { INotebookKernelSourceSelector, INotebookKernelSourceTracker } from '../types';
 
-interface KernelSourceQuickPickItem extends QuickPickItem {
-    kernelSource: IKernelSource;
+interface KernelFinderQuickPickItem extends QuickPickItem {
+    kernelFinderInfo: IContributedKernelFinderInfo;
 }
 
 @injectable()
 export class NotebookKernelSourceSelector implements INotebookKernelSourceSelector {
     constructor(
-        @inject(IKernelSourceService) private readonly kernelSourceService: IKernelSourceService,
         @inject(IApplicationShell) private readonly applicationShell: IApplicationShell,
-        @inject(INotebookKernelSourceTracker) private readonly kernelSourceTracker: INotebookKernelSourceTracker
+        @inject(INotebookKernelSourceTracker) private readonly kernelSourceTracker: INotebookKernelSourceTracker,
+        @inject(IKernelFinder) private readonly kernelFinder: IKernelFinder
     ) {}
 
     public async selectKernelSource(notebook: NotebookDocument): Promise<void> {
-        const quickPickItems = this.kernelSourceService.getKernelSources().map(this.toQuickPickItem);
-
+        const quickPickItems = this.kernelFinder.getRegisteredKernelFinderInfo().map(this.toQuickPickItem);
         const selectedItem = await this.applicationShell.showQuickPick(quickPickItems);
 
         // If we selected something persist that value
         if (selectedItem) {
-            this.kernelSourceTracker.setKernelSourceForNotebook(notebook, selectedItem.kernelSource);
+            this.kernelSourceTracker.setKernelSourceForNotebook(notebook, selectedItem.kernelFinderInfo);
         }
     }
 
-    toQuickPickItem(kernelSource: IKernelSource): KernelSourceQuickPickItem {
-        return { kernelSource, label: kernelSource.displayName };
+    toQuickPickItem(kernelFinderInfo: IContributedKernelFinderInfo): KernelFinderQuickPickItem {
+        return { kernelFinderInfo, label: kernelFinderInfo.displayName };
     }
 }
