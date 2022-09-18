@@ -63,6 +63,7 @@ export class RemoteKernelFinder implements IRemoteKernelFinder, IExtensionSingle
      */
     private readonly kernelIdsToHide = new Set<string>();
     kind: string = 'remote';
+    id: string = 'currentremote';
     private _cacheUpdateCancelTokenSource: CancellationTokenSource | undefined;
     private cache: RemoteKernelConnectionMetadata[] = [];
 

@@ -51,6 +51,7 @@ export class UniversalRemoteKernelFinder implements IRemoteKernelFinder, IDispos
      */
     private readonly kernelIdsToHide = new Set<string>();
     kind: string = 'remote';
+    id: string;
     private _cacheUpdateCancelTokenSource: CancellationTokenSource | undefined;
     private cache: RemoteKernelConnectionMetadata[] = [];
 
@@ -81,6 +82,9 @@ export class UniversalRemoteKernelFinder implements IRemoteKernelFinder, IDispos
         private isWebExtension: boolean,
         private readonly serverUri: IJupyterServerUriEntry
     ) {
+        // Register with remote-serverId as our ID
+        this.id = `${this.kind}-${serverUri.serverId}`;
+
         this._initializedPromise = new Promise<void>((resolve) => {
             this._initializeResolve = resolve;
         });
@@ -138,7 +142,7 @@ export class UniversalRemoteKernelFinder implements IRemoteKernelFinder, IDispos
     }
 
     public async loadCache() {
-        traceInfoIfCI('Remote Kernel Finder load cache');
+        traceInfoIfCI(`Remote Kernel Finder load cache Server: ${this.id}`);
 
         const kernelsFromCache = await this.getFromCache();
 
@@ -352,7 +356,9 @@ export class UniversalRemoteKernelFinder implements IRemoteKernelFinder, IDispos
     }
 
     private getCacheKey() {
-        return RemoteKernelSpecsCacheKey;
+        // For Universal finders key each one per serverId
+        // IANHU: Note, might not be cleaning these up? Check that.
+        return `${RemoteKernelSpecsCacheKey}-${this.serverUri.serverId}`;
     }
 
     private async writeToCache(values: RemoteKernelConnectionMetadata[]) {
