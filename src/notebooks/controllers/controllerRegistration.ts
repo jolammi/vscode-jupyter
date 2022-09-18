@@ -73,7 +73,8 @@ export class ControllerRegistration implements IControllerRegistration {
         @inject(IBrowserService) private readonly browser: IBrowserService,
         @inject(IServiceContainer) private readonly serviceContainer: IServiceContainer,
         @inject(IServerConnectionType) private readonly serverConnectionType: IServerConnectionType,
-        @inject(IJupyterServerUriStorage) private readonly serverUriStorage: IJupyterServerUriStorage
+        @inject(IJupyterServerUriStorage) private readonly serverUriStorage: IJupyterServerUriStorage,
+        @inject(IConfigurationService) private readonly configService: IConfigurationService
     ) {
         this.kernelFilter.onDidChange(this.onDidChangeFilter, this, this.disposables);
         this.serverConnectionType.onDidChange(this.onDidChangeFilter, this, this.disposables);
@@ -192,6 +193,8 @@ export class ControllerRegistration implements IControllerRegistration {
 
         if (this.inKernelExperiment) {
             return userFiltered || connectionTypeFiltered || urlFiltered;
+        } else if (this.configService.getSettings().kernelPickerType === 'Insiders') {
+            return userFiltered;
         }
 
         return userFiltered || urlFiltered;
