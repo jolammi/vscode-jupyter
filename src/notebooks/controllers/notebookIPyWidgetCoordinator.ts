@@ -134,6 +134,9 @@ export class NotebookIPyWidgetCoordinator implements IExtensionSyncActivationSer
         this.notebook.notebookEditors.forEach((editor) => this.initializeNotebookCommunication(editor, e.controller));
     }
     private initializeNotebookCommunication(editor: NotebookEditor, controller: IVSCodeNotebookController | undefined) {
+        if (editor.notebook.isClosed) {
+            return;
+        }
         const notebook = editor.notebook;
         if (!controller) {
             traceVerbose(
