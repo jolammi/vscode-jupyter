@@ -47,14 +47,9 @@ export class ControllerRegistration implements IControllerRegistration {
         return this.serverConnectionType.isLocalLaunch;
     }
     private registeredControllers = new Map<string, VSCodeNotebookController>();
-    private creationEmitter = new EventEmitter<IVSCodeNotebookController>();
     private changeEmitter = new EventEmitter<IVSCodeNotebookControllerUpdateEvent>();
     private registeredMetadatas = new Map<string, KernelConnectionMetadata>();
     private inKernelExperiment = false;
-
-    public get onCreated(): Event<IVSCodeNotebookController> {
-        return this.creationEmitter.event;
-    }
     public get onChanged(): Event<IVSCodeNotebookControllerUpdateEvent> {
         return this.changeEmitter.event;
     }
@@ -95,7 +90,7 @@ export class ControllerRegistration implements IControllerRegistration {
     batchAdd(metadatas: KernelConnectionMetadata[], types: ('jupyter-notebook' | 'interactive')[]) {
         const added: IVSCodeNotebookController[] = [];
         metadatas.forEach((metadata) => {
-            added.push(...this.add(metadata, types));
+            added.push(...this.addImpl(metadata, types, false));
         });
 
         this.changeEmitter.fire({ added, removed: [] });
@@ -104,6 +99,13 @@ export class ControllerRegistration implements IControllerRegistration {
     add(
         metadata: KernelConnectionMetadata,
         types: ('jupyter-notebook' | 'interactive')[]
+    ): IVSCodeNotebookController[] {
+        return this.addImpl(metadata, types, true);
+    }
+    addImpl(
+        metadata: KernelConnectionMetadata,
+        types: ('jupyter-notebook' | 'interactive')[],
+        triggerChangeEvent: boolean
     ): IVSCodeNotebookController[] {
         let results: IVSCodeNotebookController[] = [];
         try {
@@ -178,8 +180,10 @@ export class ControllerRegistration implements IControllerRegistration {
                     this.disposables.push(controller);
                     this.registeredControllers.set(controller.id, controller);
                     results.push(controller);
-                    this.creationEmitter.fire(controller);
                 });
+            if (triggerChangeEvent && results.length) {
+                this.changeEmitter.fire({ added: results, removed: [] });
+            }
         } catch (ex) {
             if (isCancellationError(ex, true)) {
                 // This can happen in the tests, and these get bubbled upto VSC and are logged as unhandled exceptions.

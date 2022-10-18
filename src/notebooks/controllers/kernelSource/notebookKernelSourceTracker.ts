@@ -28,7 +28,11 @@ export class NotebookKernelSourceTracker implements INotebookKernelSourceTracker
     activate(): void {
         workspace.onDidOpenNotebookDocument(this.onDidOpenNotebookDocument, this, this.disposableRegistry);
         workspace.onDidCloseNotebookDocument(this.onDidCloseNotebookDocument, this, this.disposableRegistry);
-        this.controllerRegistration.onCreated(this.onCreatedController, this, this.disposableRegistry);
+        this.controllerRegistration.onChanged(
+            ({ added }) => added.forEach((e) => this.onCreatedController(e)),
+            this,
+            this.disposableRegistry
+        );
 
         // Tag all open documents
         workspace.notebookDocuments.forEach(this.onDidOpenNotebookDocument.bind(this));

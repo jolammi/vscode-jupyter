@@ -283,35 +283,37 @@ export class ServerConnectionControllerCommands implements IExtensionSingleActiv
         });
 
         // Listen to new controllers being added
-        this.controllerRegistration.onCreated((e) => {
-            if (
-                e.viewType === viewType &&
-                quickPickItems.find((p) => (p as any).controller?.id === e.id) === undefined
-            ) {
-                // Create a pick for the new controller
-                const pick: ControllerQuickPick = {
-                    label: e.label,
-                    detail: undefined,
-                    description: e.controller.description,
-                    controller: e
-                };
+        this.controllerRegistration.onChanged(({ added }) => {
+            added.forEach((e) => {
+                if (
+                    e.viewType === viewType &&
+                    quickPickItems.find((p) => (p as any).controller?.id === e.id) === undefined
+                ) {
+                    // Create a pick for the new controller
+                    const pick: ControllerQuickPick = {
+                        label: e.label,
+                        detail: undefined,
+                        description: e.controller.description,
+                        controller: e
+                    };
 
-                // Stick into the list at the right place
-                const kind = e.controller.kind || 'Other';
-                const index = kindIndexes.get(kind) || -1;
-                if (index < 0) {
-                    quickPickItems.push({
-                        kind: QuickPickItemKind.Separator,
-                        label: kind
-                    });
-                    quickPickItems.push(pick);
-                    kindIndexes.set(kind, quickPickItems.length);
-                } else {
-                    quickPickItems.splice(index, 0, pick);
-                    kindIndexes.set(kind, quickPickItems.length);
+                    // Stick into the list at the right place
+                    const kind = e.controller.kind || 'Other';
+                    const index = kindIndexes.get(kind) || -1;
+                    if (index < 0) {
+                        quickPickItems.push({
+                            kind: QuickPickItemKind.Separator,
+                            label: kind
+                        });
+                        quickPickItems.push(pick);
+                        kindIndexes.set(kind, quickPickItems.length);
+                    } else {
+                        quickPickItems.splice(index, 0, pick);
+                        kindIndexes.set(kind, quickPickItems.length);
+                    }
+                    changeEmitter.fire(quickPickItems);
                 }
-                changeEmitter.fire(quickPickItems);
-            }
+            });
         });
 
         // Show quick pick with the list of controllers
