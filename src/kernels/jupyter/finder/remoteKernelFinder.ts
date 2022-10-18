@@ -270,7 +270,7 @@ export class RemoteKernelFinder implements IRemoteKernelFinder, IExtensionSingle
             const validValues: RemoteKernelConnectionMetadata[] = [];
             const promise = Promise.all(
                 results.map(async (item) => {
-                    if (await this.isValidCachedKernel(item)) {
+                    if (await this.isValidCachedKernel(item, cancelToken)) {
                         validValues.push(item);
                     }
                 })
@@ -414,13 +414,16 @@ export class RemoteKernelFinder implements IRemoteKernelFinder, IExtensionSingle
         }
     }
 
-    private async isValidCachedKernel(kernel: RemoteKernelConnectionMetadata): Promise<boolean> {
+    private async isValidCachedKernel(
+        kernel: RemoteKernelConnectionMetadata,
+        cancelToken?: CancellationToken
+    ): Promise<boolean> {
         switch (kernel.kind) {
             case 'startUsingRemoteKernelSpec':
                 // Always fetch the latest kernels from remotes, no need to display cached remote kernels.
                 return false;
             case 'connectToLiveRemoteKernel':
-                return this.cachedRemoteKernelValidator.isValid(kernel);
+                return this.cachedRemoteKernelValidator.isValid(kernel, cancelToken);
         }
     }
 }
